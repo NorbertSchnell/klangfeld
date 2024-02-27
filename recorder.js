@@ -1,27 +1,6 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioContext = null;
 
-const recordButton = document.getElementById('record-button');
-recordButton.addEventListener('click', () => {
-  if (stream === null) {
-    recordButton.classList.add('active');
-
-    if (audioContext === null) {
-      audioContext = new AudioContext();
-    }
-
-    startRecording();
-    recordButton.innerText = 'recording';
-  } else {
-    recordButton.classList.remove('active');
-    stopRecording();
-    recordButton.innerText = 'start recorder';
-  }
-});
-
-let clientIndex = -1;
-let gain = 1.0;
-
 /****************************************************************
  * websocket communication
  */
@@ -80,6 +59,25 @@ const buffer = new Float32Array(bufferSize);
 let stream = null;
 let scriptProcessor = null;
 let audioIn = null;
+let gain = 1.0;
+
+const recordButton = document.getElementById('record-button');
+recordButton.addEventListener('click', () => {
+  if (stream === null) {
+    recordButton.classList.add('active');
+
+    if (audioContext === null) {
+      audioContext = new AudioContext();
+    }
+
+    startRecording();
+    recordButton.innerText = 'recording';
+  } else {
+    recordButton.classList.remove('active');
+    stopRecording();
+    recordButton.innerText = 'start recorder';
+  }
+});
 
 function startRecording() {
   navigator.getUserMedia({
