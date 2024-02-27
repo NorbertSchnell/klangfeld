@@ -1,6 +1,7 @@
 import { startAudio, GranularSynth, WaveformRenderer } from "./player-utils.js";
+import config from './config.js'
 
-const audiofilesBasePath = 'audiofiles/record';
+const audiofilesBasePath = 'audiofiles/segment';
 let groupIndex = null;
 let bufferCount = 0;
 const fadeTime = 2;
@@ -11,8 +12,8 @@ let touchY = 0.5;
 /*********************************************
  * websocket communication
  */
-const webSocketPort = 3000;
-const webSocketAddr = '192.168.178.23';
+const webSocketAddr = config['server-addr'];
+const webSocketPort = config['server-port'];
 const socket = new WebSocket(`ws://${webSocketAddr}:${webSocketPort}`);
 
 // listen to opening websocket connections
@@ -37,9 +38,8 @@ socket.addEventListener('message', (event) => {
     switch (obj.selector) {
       case 'player-group': {
         groupIndex = value;
-
         playerMessages.innerText = 'Tap screen to start!';
-        window.addEventListener('touchstart', startPlaying);
+        window.addEventListener('click', startPlaying);
         break;
       }
 
@@ -54,6 +54,9 @@ socket.addEventListener('message', (event) => {
         loadAudioBuffer(index);
         break;
       }
+
+      case 'freeze':
+        break;
 
       case 'period':
         granularSynth.setPeriod(0.001 * value);
@@ -97,7 +100,7 @@ socket.addEventListener('message', (event) => {
   }
 });
 
-function sendMessage(selector, value) {
+function sendMessage(selector, value = 0) {
   const obj = { selector, value };
   const str = JSON.stringify(obj);
   socket.send(str);
@@ -118,12 +121,14 @@ let maxPosition = 0;
 function startPlaying() {
   startAudio();
 
-  window.removeEventListener('touchstart', startPlaying);
+  window.removeEventListener('click', startPlaying);
   playerMessages.innerText = 'Waiting for live audio...';
 
   if (granularSynth === null && waveformRenderer === null) {
     waveformRenderer = new WaveformRenderer();
-    granularSynth = new GranularSynth();  // listen to parameter updates
+    granularSynth = new GranularSynth();
+
+    sendMessage('get-params');
 
     if (audioBuffer !== null) {
       updateAudioBuffer(audioBuffer);
@@ -155,8 +160,9 @@ function updateAudioBuffer(buffer) {
       setBackgroundColor(bufferCount);
     }
 
-    playerMessages.style.top = 'calc(100% - 1.2em)';
+    playerMessages.style.top = 'calc(100% - 1.5em)';
     playerMessages.innerHTML = 'Move your finger on screen to play.';
+    playerTitle.style.opacity = 0;
   }
 
   updateGrainWindow();
@@ -182,9 +188,12 @@ function loadAudioBuffer(index) {
 /*********************************************
  * graphics
  */
+const playerTitle = document.getElementById('player-title');
 const playerMessages = document.getElementById('player-messages');
 let canvasWidth = 0;
 let canvasHeight = 0;
+
+playerTitle.innerText = config.title;
 
 const backgroundColors = [
   '#9e9e9e', // 'light grey'

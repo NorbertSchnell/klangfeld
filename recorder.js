@@ -1,11 +1,13 @@
+import config from './config.js'
+
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioContext = null;
 
 /****************************************************************
  * websocket communication
  */
-const webSocketPort = 3000;
-const webSocketAddr = 'localhost';
+const webSocketAddr = config['server-addr'];
+const webSocketPort = config['server-port'];
 const socket = new WebSocket(`ws://${webSocketAddr}:${webSocketPort}/recorder`);
 const audioSocket = new WebSocket(`ws://${webSocketAddr}:${webSocketPort}/audio`);
 audioSocket.binaryType = 'arraybuffer';
@@ -26,18 +28,24 @@ socket.addEventListener('message', (event) => {
 
   if (message.length > 0) {
     const obj = JSON.parse(message);
+    const value = obj.value;
 
     // dispatch incomming messages
     switch (obj.selector) {
-      case 'recorder-ok':
-        const isOk = obj.value;
-
-        if (isOk) {
+      case 'recorder-ok': {
+        if (value) {
           recordButton.classList.add('enabled');
+          sendMessage('get-params');
         } else {
           console.log('recorder not ok');
         }
         break;
+      }
+
+      case 'freeze': {
+        // ??? freeze
+        break;
+      }
 
       default:
         break;
@@ -45,7 +53,7 @@ socket.addEventListener('message', (event) => {
   }
 });
 
-function sendMessage(socket, selector, value) {
+function sendMessage(selector, value = 0) {
   const obj = { selector, value };
   const str = JSON.stringify(obj);
   socket.send(str);
@@ -64,22 +72,32 @@ let gain = 1.0;
 const recordButton = document.getElementById('record-button');
 recordButton.addEventListener('click', () => {
   if (stream === null) {
-    recordButton.classList.add('active');
-
-    if (audioContext === null) {
-      audioContext = new AudioContext();
-    }
-
     startRecording();
-    recordButton.innerText = 'recording';
   } else {
-    recordButton.classList.remove('active');
     stopRecording();
-    recordButton.innerText = 'start recorder';
   }
 });
 
 function startRecording() {
+  recordButton.classList.add('active');
+
+  if (audioContext === null) {
+    audioContext = new AudioContext();
+  }
+
+  startAudioStream();
+  recordButton.innerText = 'recording';
+}
+
+function stopRecording() {
+  if (stream !== null) {
+    recordButton.classList.remove('active');
+    stopAudioStream();
+    recordButton.innerText = 'start recorder';
+  }
+}
+
+function startAudioStream() {
   navigator.getUserMedia({
     audio: {
       noiseSuppression: false,
@@ -102,16 +120,14 @@ function startRecording() {
       audioSocket.send(buffer);
     }
 
-    sendMessage(socket, 'start');
+    sendMessage('init-stream');
 
     audioIn = audioContext.createMediaStreamSource(stream);
     audioIn.connect(scriptProcessor);
   }, (err) => console.error(err.stack));
 }
 
-function stopRecording() {
-  sendMessage(socket, 'stop');
-
+function stopAudioStream() {
   scriptProcessor.disconnect();
   scriptProcessor = null;
 

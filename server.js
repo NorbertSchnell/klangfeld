@@ -6,9 +6,10 @@ import http from 'http';
 import paramConfig from './params.js';
 
 const recordFilePath = process.cwd() + '/audiofiles';
-const recordFileBaseName = 'record';
+const recordFileBaseName = 'segment';
 const sampleRate = 48000;
 const bufferSize = sampleRate;
+let recordingFrozen = false;
 
 /****************************************************************
  * http server
@@ -37,6 +38,8 @@ webSocketServer.on('connection', (socket, req) => {
     case '/controller': {
       controllerSockets.add(socket);
 
+      sendCurrentParameterValues(socket);
+
       socket.on('close', () => {
         controllerSockets.delete(socket);
       });
@@ -44,7 +47,7 @@ webSocketServer.on('connection', (socket, req) => {
       socket.on('message', (message) => {
         if (message.length > 0) {
           const obj = JSON.parse(message);
-          receiveControllerParameter(socket, obj.selector, obj.value);
+          updateClientParameters(socket, obj.selector, obj.value);
         }
       });
 
@@ -68,15 +71,9 @@ webSocketServer.on('connection', (socket, req) => {
             const obj = JSON.parse(message);
 
             switch (obj.selector) {
-              case 'start': {
-                startRecording();
+              case 'init-stream': {
+                resetStream();
                 console.log('recorder started');
-                break;
-              }
-
-              case 'stop': {
-                stopRecording();
-                console.log('recorder stopped');
                 break;
               }
             }
@@ -90,7 +87,7 @@ webSocketServer.on('connection', (socket, req) => {
     // audio frames from recorder client
     case '/audio': {
       socket.on('message', (message) => {
-        if (message.length > 0) {
+        if (message.length > 0 && !recordingFrozen) {
           apaendAudioFrame(message);
         }
       });
@@ -102,6 +99,19 @@ webSocketServer.on('connection', (socket, req) => {
     default: {
       const groupIndex = addPlayerToSmallestGroup(socket);
       sendMessage(socket, 'player-group', groupIndex);
+
+      socket.on('message', (message) => {
+        if (message.length > 0) {
+          const obj = JSON.parse(message);
+
+          switch (obj.selector) {
+            case 'get-params': {
+              sendCurrentParameterValues(socket);
+              break;
+            }
+          }
+        }
+      });
 
       socket.on('close', () => {
         removePlayerFromGroups(socket);
@@ -132,7 +142,7 @@ function sendStrToSet(set, str, except = null) {
   }
 }
 
-function sendToAllControllers(selector, value, except) {
+function sendToAllControllers(selector, value, except = null) {
   const obj = { selector, value };
   const str = JSON.stringify(obj);
   sendStrToSet(controllerSockets, str, except);
@@ -197,16 +207,31 @@ function notifyPlayerGroup(index, count) {
 /********************************************
  * controller parameters
  */
-const controllerParams = {};
+const paramValues = {};
 
 for (let param of paramConfig) {
-  controllerParams[param.name] = param.def;
+  paramValues[param.name] = param.def;
 }
 
-function receiveControllerParameter(socket, selector, value) {
-  controllerParams[selector] = value;
+function updateClientParameters(socket, selector, value) {
+  paramValues[selector] = value;
   sendToAllControllers(selector, value, socket);
   sendToAllPlayers(selector, value);
+
+  if (selector === 'freeze') {
+    recordingFrozen = value;
+
+    if (!recordingFrozen) {
+      resetStream();
+    }
+  }
+}
+
+function sendCurrentParameterValues(socket) {
+  for (let name in paramValues) {
+    const value = paramValues[name];
+    sendMessage(socket, name, value);
+  }
 }
 
 /********************************************
@@ -216,6 +241,7 @@ const wav = new wavefile.WaveFile();
 const audioBuffers = [];
 const numBuffers = 4;
 let bufferCount = -1;
+let fullBufferIndex = 0;
 let indexInBuffer = 0;
 
 for (let i = 0; i < numBuffers; i++) {
@@ -223,12 +249,13 @@ for (let i = 0; i < numBuffers; i++) {
   audioBuffers.push(buffer);
 }
 
-function startRecording() {
-  indexInBuffer = 0;
-  bufferCount = -1;
-}
+function resetStream() {
+  if (bufferCount > 0) {
+    bufferCount--;
+  }
 
-function stopRecording() {
+  fullBufferIndex = bufferCount + 1;
+  indexInBuffer = 0;
 }
 
 function apaendAudioFrame(data) {
@@ -252,7 +279,7 @@ function apaendAudioFrame(data) {
 
     if (indexInBuffer >= bufferSize) {
       // write file if at least two buffers hav been recorded
-      if (bufferCount >= 0) {
+      if (bufferCount >= fullBufferIndex) {
         const fileIndex = bufferCount % numPlayerGroups;
         const outputFilePath = `${recordFilePath}/${recordFileBaseName}-${fileIndex}.wav`;
 
