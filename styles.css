@@ -1,0 +1,139 @@
+html {
+  overscroll-behavior: none;
+}
+
+body {
+  position: fixed;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  font-family: Helvetica, sans-serif;
+  font-size: 1em;
+  line-height: 1.3em;
+  color: #fff;
+  background-color: #000;
+  transition-property: background-color;
+  transition-duration: 4s;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+body.controller {
+  padding: 20px;
+}
+
+/**********************************************************
+ * controller
+ */
+.controller-param {
+  width: 100%;
+  height: 2em;
+  pointer-events: none;
+  margin-bottom: 0.5em;
+}
+
+.controller-param .label {
+  display: inline-block;
+  width: 4em;
+  text-align: right;
+  pointer-events: all;
+  margin-right: 0.5em;
+}
+
+.controller-param .number {
+  display: inline-block;
+  width: 2.5em;
+  text-align: right;
+}
+
+.controller-param .slider-frame {
+  display: inline-block;
+  position: relative;
+  top: 0.4em;
+  width: calc(100% - 10em);
+  height: 1.2em;
+  cursor: pointer;
+  border-style: solid;
+  border-width: 0.5px;
+  border-radius: 0.1em;
+  pointer-events: all;
+}
+
+.controller-param .slider {
+  position: absolute;
+  top: 0;
+  left: 0%;
+  width: 100%;
+  height: 100%;
+  border-right-style: solid;
+  border-left-style: solid;
+  border-width: 1px;
+  border-radius: 0.1em;
+  border-color: turquoise;
+  background-color: turquoise;
+  pointer-events: none;
+}
+
+/**********************************************************
+ * recorder
+ */
+#record-button {
+  margin: 20px;
+  width: 10em;
+}
+
+.button {
+  position: relative;
+  width: fit-content;
+  padding: 5px;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  border-color: #fff;
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 1;
+  text-align: center;
+}
+
+.button.enabled {
+  pointer-events: all;
+  opacity: 1;
+}
+
+.button.active {
+  background-color: #600;
+}
+
+/**********************************************************
+ * player
+ */
+#player-messages {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  margin-top: -0.6em;
+  line-height: 1em;
+  font-size: 1.2em;
+  text-align: center;
+  transition-property: top left;
+  transition-duration: 1s;
+}
+
+.fullscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.translucent {
+  opacity: 0;
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+  <title>Klangfeld | Controller</title>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="stylesheet" href="styles.css">
+  <script language="JavaScript" type="module" src="controller.js" defer></script>
+</head>
+
+<body class="controller">
+  <div data-name="period" class="controller-param">
+    <span data-name="period" class="label">period</span>
+    <span data-name="period" class="slider-frame"><span class="slider"></span></span>
+    <span data-name="period" class="number">10</span>
+    <span class="unit">ms</span>
+  </div>
+
+  <div data-name="duration" class="controller-param">
+    <span data-name="duration" class="label">duration</span>
+    <span data-name="duration" class="slider-frame"><span class="slider"></span></span>
+    <span data-name="duration" class="number">100</span>
+    <span class="unit">ms</span>
+  </div>
+
+  <div data-name="blur" class="controller-param">
+    <span data-name="blur" class="label">blur</span>
+    <span data-name="blur" class="slider-frame"><span class="slider"></span></span>
+    <span data-name="blur" class="number">3</span>
+    <span class="unit">ms</span>
+  </div>
+
+  <div data-name="pitch" class="controller-param">
+    <span data-name="pitch" class="label">pitch</span>
+    <span data-name="pitch" class="slider-frame"><span class="slider bipolar"></span></span>
+    <span data-name="pitch" class="number">0</span>
+    <span class="unit">cent</span>
+  </div>
+
+  <div data-name="bubble" class="controller-param">
+    <span data-name="bubble" class="label">bubble</span>
+    <span data-name="bubble" class="slider-frame"><span class="slider"></span></span>
+    <span data-name="bubble" class="number">0</span>
+    <span class="unit">cent</span>
+  </div>
+
+  <div data-name="gain" class="controller-param">
+    <span data-name="gain" class="label">gain</span>
+    <span data-name="gain" class="slider-frame"><span class="slider bipolar"></span></span>
+    <span data-name="gain" class="number">0</span>
+    <span class="unit">dB</span>
+  </div>
+
+  <div data-name="attack" class="controller-param">
+    <span data-name="attack" class="label">attack</span>
+    <span data-name="attack" class="slider-frame"><span class="slider"></span></span>
+    <span data-name="attack" class="number">0</span>
+    <span class="unit">%</span>
+  </div>
+
+  <div data-name="release" class="controller-param">
+    <span data-name="release" class="label">release</span>
+    <span data-name="release" class="slider-frame"><span class="slider"></span></span>
+    <span data-name="release" class="number">0</span>
+    <span class="unit">%</span>
+  </div>
+</body>
+
+</html>

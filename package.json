@@ -1,0 +1,12 @@
+{
+  "name": "klang-field",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "a participative audio distribution platform",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "wavefile": "^11.0.0",
+    "ws": "^7.4.4"
+  }
+}
