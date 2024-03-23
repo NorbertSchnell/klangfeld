@@ -460,8 +460,6 @@ export class WaveformRenderer {
   }
 
   setBuffer(buffer, fadeTime = 2) {
-    let index = 0 + this.waveToggle;
-    let waveCvs = this.waveCvs[index];
     const windCvs = this.windCvs;
 
     if (this.buffer === null) {
@@ -476,14 +474,16 @@ export class WaveformRenderer {
 
     this.buffer = buffer;
 
+    let index = 0 + this.waveToggle;
+    let waveCvs = this.waveCvs[index];
     waveCvs.style.transitionProperty = 'opacity';
     waveCvs.style.transitionDuration = `${fadeTime + 1}s`;
     waveCvs.style.opacity = 0;
 
     this.waveToggle = !this.waveToggle;
+
     index = 0 + this.waveToggle;
     waveCvs = this.waveCvs[index];
-
     waveCvs.style.transitionProperty = 'opacity';
     waveCvs.style.transitionDuration = `${fadeTime + 1}s`;
     waveCvs.style.opacity = 1;
@@ -526,8 +526,6 @@ export class WaveformRenderer {
     const width = this.canvasWidth;
     const height = this.canvasHeight;
 
-    this.waveUpdate = false;
-
     ctx.save();
     ctx.clearRect(0, 0, width, height);
 
@@ -558,8 +556,6 @@ export class WaveformRenderer {
       const halfWind = 0.5 * windWidth;
       const opacity = this.windowOpacity;
 
-      this.windUpdate = false;
-
       ctx.fillStyle = '#fff';
       ctx.globalAlpha = 0.5 * opacity;
 
@@ -573,11 +569,13 @@ export class WaveformRenderer {
       const index = 0 + this.waveToggle;
       const ctx = this.waveCvs[index].getContext('2d');
       this.renderWaveform(ctx);
+      this.waveUpdate = false;
     }
 
     if (this.windUpdate) {
       const ctx = this.windCvs.getContext('2d');
       this.renderWindow(ctx);
+      this.windUpdate = false;
     }
 
     requestAnimationFrame(this.render);

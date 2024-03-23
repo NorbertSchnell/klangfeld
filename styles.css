@@ -99,6 +99,10 @@ body {
 /**********************************************************
  * controller
  */
+body.controller {
+  margin-top: 1em;
+}
+
 .controller-param {
   width: 100%;
   height: 2em;
@@ -164,4 +168,8 @@ body {
 
 .controller-param .button[data-active="true"] {
   background-color: turquoise;
+}
+
+.controller-param[data-name="freeze"], .controller-param[data-name="end"] {
+  display: inline;
 }

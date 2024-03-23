@@ -47,6 +47,11 @@ socket.addEventListener('message', (event) => {
         break;
       }
 
+      case 'end': {
+        // ??? end
+        break;
+      }
+
       default:
         break;
     }

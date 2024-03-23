@@ -73,7 +73,6 @@ webSocketServer.on('connection', (socket, req) => {
             switch (obj.selector) {
               case 'init-stream': {
                 resetStream();
-                console.log('recorder started');
                 break;
               }
             }
@@ -220,6 +219,12 @@ function updateClientParameters(socket, selector, value) {
 
   if (selector === 'freeze') {
     recordingFrozen = value;
+
+    if (!recordingFrozen) {
+      resetStream();
+    }
+  } else if (selector === 'end') {
+    recordingFrozen = !value;
 
     if (!recordingFrozen) {
       resetStream();

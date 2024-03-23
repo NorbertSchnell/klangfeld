@@ -93,6 +93,10 @@ socket.addEventListener('message', (event) => {
         granularSynth.setGain(dBToLin(value));
         break;
 
+      case 'end':
+        /// end
+        break;
+
       default:
         console.error(`received invalid message: ${obj.selector} ${obj.value}`);
         break;

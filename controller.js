@@ -32,6 +32,9 @@ socket.addEventListener('message', (event) => {
       case 'freeze':
         setButton(selector, value, false);
         break;
+      case 'end':
+        setButton(selector, value, false);
+        break;
       case 'period':
       case 'duration':
       case 'blur':
@@ -72,9 +75,6 @@ for (let param of paramConfig) {
   controllerElements.set(name, elems);
   addPointerListeners(frame);
 }
-
-const freezeButton = document.querySelector(`div[data-name=freeze]`);
-const freezeActive = false;
 
 function addPointerListeners(elem) {
   window.addEventListener('touchstart', onPointerStart);
@@ -144,8 +144,15 @@ function setParameterNormalized(name, norm, send = false) {
 
   if (elems !== undefined) {
     const param = elems.param;
-    const value = Math.round((param.max - param.min) * norm + param.min);
-    updateNumericParameter(param, elems, value, norm, send);
+
+    switch (elems.frame.className) {
+      case 'slider-frame': {
+        const value = Math.round((param.max - param.min) * norm + param.min);
+        updateNumericParameter(param, elems, value, norm, send);
+      }
+      default:
+        break;
+    }
   }
 }
 
@@ -166,6 +173,8 @@ function resetParameter(name, send = false) {
         updateBooleanParameter(name, elems, param.def, send);
         break;
       }
+      default:
+        break;
     }
   }
 }
