@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import express from 'express';
 import WebSocket from 'ws';
 import http from 'http';
+import jazz from 'jazz-midi';
 import appConfig from './config.js';
 import paramConfig from './params.js';
 
@@ -207,9 +208,11 @@ function notifyPlayerGroup(index, count) {
 /********************************************
  * controller parameters
  */
+const paramsByName = {};
 const paramValues = {};
 
 for (let param of paramConfig) {
+  paramsByName[param.name] = param;
   paramValues[param.name] = param.def;
 }
 
@@ -300,3 +303,86 @@ function apaendAudioFrame(data) {
     }
   }
 }
+
+/****************************************************************
+ * MIDI controller
+ */
+const midi = new jazz.MIDI();
+const midiInputName = appConfig['midi-input-port'] || 'default';
+
+const midiInputs = jazz.MidiInList();
+let midiInputPort = null;
+
+if (midiInputs.length > 0) {
+  for (let i = 0; i < midiInputs.length; i++) {
+    let name = midiInputs[i];
+
+    if (name === midiInputName) {
+      midiInputPort = midi.MidiInOpen(i, onMidiIn);
+    }
+  }
+
+  if (midiInputPort !== null) {
+    console.log(`listening to MIDI input port '${midiInputName}'`);
+  } else {
+    console.log(`cannot open MIDI input port '${midiInputName}'`);
+    console.log('available MIDI ports:');
+    for (let i = 0; i < midiInputs.length; i++) {
+      let name = midiInputs[i];
+      console.log(` ${i}: '${name}'`);
+    }
+  }
+} else {
+  console.log('no MIDI input ports avalable');
+}
+
+const paddleParamNames = [
+  'period',
+  'duration',
+  'blur',
+  'pitch',
+  'bubble',
+  'gain',
+  'attack',
+  'release',
+];
+
+const paddleParams = [];
+
+for (let name of paddleParamNames) {
+  const param = paramsByName[name];
+
+  if (param) {
+    const pp = {
+      name,
+      scale: (param.max - param.min),
+      offset: param.min,
+    }
+
+    paddleParams.push(pp);
+  } else {
+    console.error(`unknown parameter: '${name}'`);
+  }
+}
+
+function onMidiIn(t, msg) {
+  const statusByte = msg[0];
+
+  if ((statusByte & 0xF0) == 0xB0) {
+    const midiChannel = (statusByte & 0x0F) + 1;
+    const controllerNumber = msg[1];
+    const controllerValue = msg[2];
+
+    const paddleIndex = controllerNumber - 1;
+    const pp = paddleParams[paddleIndex];
+    const paramName = pp.name;
+    const paramValue = Math.round((controllerValue / 127) * pp.scale + pp.offset);
+    sendToAllControllers(paramName, paramValue);
+  }
+}
+
+process.on('SIGINT', () => {
+  midi.MidiInClose();
+  console.log('bye!');
+  process.exit();
+});
