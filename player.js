@@ -148,7 +148,7 @@ function stopPlaying() {
   granularSynth.stop(releaseTime);
   waveformRenderer.resetBuffer(releaseTime);
   disablePointerEvents();
-  setBackgroundColor(null);
+  // setBackgroundColor(null);
 }
 
 function updateAudioBuffer(buffer) {
@@ -161,7 +161,7 @@ function updateAudioBuffer(buffer) {
     if (!granularSynth.isPlaying) {
       granularSynth.start();
       waveformRenderer.start();
-      setBackgroundColor(bufferCount);
+      // setBackgroundColor(bufferCount);
     }
 
     playerMessages.style.top = 'calc(100% - 1.5em)';
@@ -184,7 +184,7 @@ function loadAudioBuffer(index) {
       updateAudioBuffer(decodedAudio);
 
       if (granularSynth !== null && waveformRenderer !== null) {
-        setBackgroundColor(bufferCount);
+        // setBackgroundColor(bufferCount);
       }
     });
 }
