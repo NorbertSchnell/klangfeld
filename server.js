@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import express from 'express';
 import WebSocket from 'ws';
 import http from 'http';
+import appConfig from './config.js';
 import paramConfig from './params.js';
 
 const recordFilePath = process.cwd() + '/audiofiles';
@@ -14,7 +15,7 @@ let recordingFrozen = false;
 /****************************************************************
  * http server
  */
-const httpPort = 3000;
+const httpPort = appConfig['server-port'] || 3000;
 const app = express();
 
 const httpServer = http
