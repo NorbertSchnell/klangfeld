@@ -1,6 +1,6 @@
 # Klangfeld
 
-*Klangfeld* is an updated version of the [GrainField](https://github.com/ircam-cosima/grainfield) web application develped by Benjamin Matuszewski and Norbert Schnell at IRCAM ISMM (see [WAC paper](https://hal.science/hal-01580467).
+*Klangfeld* is an updated version of the [GrainField](https://github.com/ircam-cosima/grainfield) web application develped by Benjamin Matuszewski and Norbert Schnell at IRCAM ISMM (see [WAC paper](https://hal.science/hal-01580467)).
 
 The application usues websockets to connect three web clients:
 - the `recorder` client records audio input
