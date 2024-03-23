@@ -372,12 +372,16 @@ function onMidiIn(t, msg) {
     const midiChannel = (statusByte & 0x0F) + 1;
     const controllerNumber = msg[1];
     const controllerValue = msg[2];
+    const pp = paddleParams[controllerNumber - 1];
 
-    const paddleIndex = controllerNumber - 1;
-    const pp = paddleParams[paddleIndex];
-    const paramName = pp.name;
-    const paramValue = Math.round((controllerValue / 127) * pp.scale + pp.offset);
-    sendToAllControllers(paramName, paramValue);
+    if (pp) {
+      const paramName = pp.name;
+      const paramValue = Math.round((controllerValue / 127) * pp.scale + pp.offset);
+      sendToAllControllers(paramName, paramValue);
+      sendToAllPlayers(paramName, paramValue);
+    } else {
+      console.log(`invalid MIDI controller: ${controllerNumber}`);
+    }
   }
 }
 
