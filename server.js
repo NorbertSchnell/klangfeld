@@ -12,6 +12,7 @@ const recordFileBaseName = 'segment';
 const sampleRate = 48000;
 const bufferSize = sampleRate;
 let recordingFrozen = false;
+let sessionEnded = false;
 
 /****************************************************************
  * http server
@@ -88,7 +89,7 @@ webSocketServer.on('connection', (socket, req) => {
     // audio frames from recorder client
     case '/audio': {
       socket.on('message', (message) => {
-        if (message.length > 0 && !recordingFrozen) {
+        if (message.length > 0 && !recordingFrozen && !sessionEnded) {
           apaendAudioFrame(message);
         }
       });
@@ -221,16 +222,17 @@ function updateClientParameters(socket, selector, value) {
   sendToAllControllers(selector, value, socket);
   sendToAllPlayers(selector, value);
 
-  if (selector === 'freeze') {
-    recordingFrozen = value;
+  if (selector === 'freeze' || selector === 'end') {
+    let frozenOrEnded = (recordingFrozen || sessionEnded);
 
-    if (!recordingFrozen) {
-      resetStream();
+    if (selector === 'freeze') {
+      recordingFrozen = value;
+    } else if (selector === 'end') {
+      sessionEnded = value;
     }
-  } else if (selector === 'end') {
-    recordingFrozen = !value;
-
-    if (!recordingFrozen) {
+    
+    // reset stream when waking up from freeze or end
+    if (frozenOrEnded && !(recordingFrozen || sessionEnded)) {
       resetStream();
     }
   }

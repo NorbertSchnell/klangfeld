@@ -1,9 +1,9 @@
-let audioContext = new AudioContext();
+let audioContext = null;
 let scheduler = null;
 
-export async function startAudio() {
+export function startAudio() {
   if (audioContext === null) {
-    await audioContext.resume();
+    audioContext = new AudioContext();
   }
 
   if (scheduler === null) {
@@ -370,7 +370,7 @@ export class GranularSynth {
     nextEngine.buffer = buffer;
     nextEngine.fadeIn(fadeTime);
 
-    if (!scheduler.has(nextEngine)) {
+    if (buffer !== null && !scheduler.has(nextEngine)) {
       scheduler.add(nextEngine);
       nextEngine.position = 0.5 * buffer.duration;
     } else {

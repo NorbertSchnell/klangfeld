@@ -38,8 +38,8 @@ socket.addEventListener('message', (event) => {
     switch (obj.selector) {
       case 'player-group': {
         groupIndex = value;
-        playerMessages.innerText = 'Tap screen to start!';
-        window.addEventListener('click', startPlaying);
+        playerMessage.innerText = 'Tap screen to start!';
+        window.addEventListener('touchstart', startPlaying);
         break;
       }
 
@@ -56,6 +56,15 @@ socket.addEventListener('message', (event) => {
       }
 
       case 'freeze':
+        break;
+
+      case 'end':
+        if (value) {
+          updateAudioBuffer(null);
+        } else {
+          playerTitle.style.opacity = 0;
+          playerMessage.innerText = 'Waiting for live audio...';
+        }
         break;
 
       case 'period':
@@ -93,10 +102,6 @@ socket.addEventListener('message', (event) => {
         granularSynth.setGain(dBToLin(value));
         break;
 
-      case 'end':
-        /// end
-        break;
-
       default:
         console.error(`received invalid message: ${obj.selector} ${obj.value}`);
         break;
@@ -122,11 +127,11 @@ let grainVar = 0.005;
 let minPosition = 0;
 let maxPosition = 0;
 
-function startPlaying() {
-  startAudio();
+async function startPlaying() {
+  window.removeEventListener('touchstart', startPlaying);
+  playerMessage.innerText = 'Waiting for live audio...';
 
-  window.removeEventListener('click', startPlaying);
-  playerMessages.innerText = 'Waiting for live audio...';
+  startAudio();
 
   if (granularSynth === null && waveformRenderer === null) {
     waveformRenderer = new WaveformRenderer();
@@ -148,7 +153,7 @@ function stopPlaying() {
   granularSynth.stop(releaseTime);
   waveformRenderer.resetBuffer(releaseTime);
   disablePointerEvents();
-  // setBackgroundColor(null);
+  setBackgroundColor(null);
 }
 
 function updateAudioBuffer(buffer) {
@@ -158,15 +163,26 @@ function updateAudioBuffer(buffer) {
     granularSynth.setBuffer(buffer, fadeTime);
     waveformRenderer.setBuffer(buffer, fadeTime);
 
-    if (!granularSynth.isPlaying) {
-      granularSynth.start();
-      waveformRenderer.start();
-      // setBackgroundColor(bufferCount);
-    }
+    if (audioBuffer !== null) {
+      if (!granularSynth.isPlaying) {
+        granularSynth.start();
+        waveformRenderer.start();
+        setBackgroundColor(bufferCount);
+      }
 
-    playerMessages.style.top = 'calc(100% - 1.5em)';
-    playerMessages.innerHTML = 'Move your finger on screen to play.';
-    playerTitle.style.opacity = 0;
+      playerMessage.classList.add('bottom');
+      playerMessage.innerHTML = "Move your finger on screen to play.";
+
+      playerTitle.style.opacity = 0;
+    } else {
+      setBackgroundColor(null);
+
+      playerTitle.innerHTML = "Thanks!";
+      playerTitle.style.opacity = 1;
+
+      playerMessage.classList.remove('bottom');
+      playerMessage.innerHTML = "This is the End.";
+    }
   }
 
   updateGrainWindow();
@@ -184,7 +200,7 @@ function loadAudioBuffer(index) {
       updateAudioBuffer(decodedAudio);
 
       if (granularSynth !== null && waveformRenderer !== null) {
-        // setBackgroundColor(bufferCount);
+        setBackgroundColor(bufferCount);
       }
     });
 }
@@ -193,7 +209,7 @@ function loadAudioBuffer(index) {
  * graphics
  */
 const playerTitle = document.getElementById('player-title');
-const playerMessages = document.getElementById('player-messages');
+const playerMessage = document.getElementById('player-message');
 let canvasWidth = 0;
 let canvasHeight = 0;
 
@@ -214,12 +230,11 @@ const backgroundColors = [
 ];
 
 function setBackgroundColor(count) {
-  const index = count % backgroundColors.length;
-
-  if (index !== null) {
+  if (count !== null) {
+    const index = count % backgroundColors.length;
     document.body.style.backgroundColor = backgroundColors[index];
   } else {
-    document.body.style.backgroundColor = 'transparent';
+    document.body.style.backgroundColor = 'black';
   }
 }
 
