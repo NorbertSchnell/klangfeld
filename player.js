@@ -6,8 +6,11 @@ let groupIndex = null;
 let bufferCount = 0;
 const fadeTime = 2;
 const releaseTime = 8;
+let recordingFrozen = false;
+let sessionEnded = false;
 let touchX = 0.5;
 let touchY = 0.5;
+
 
 /*********************************************
  * websocket communication
@@ -56,9 +59,12 @@ socket.addEventListener('message', (event) => {
       }
 
       case 'freeze':
+        recordingFrozen = value;
         break;
 
       case 'end':
+        sessionEnded = value;
+
         if (value) {
           updateAudioBuffer(null);
         } else {
@@ -171,17 +177,17 @@ function updateAudioBuffer(buffer) {
       }
 
       playerMessage.classList.add('bottom');
-      playerMessage.innerHTML = "Move your finger on screen to play.";
+      playerMessage.innerHTML = "Move your finger on screen.";
 
       playerTitle.style.opacity = 0;
     } else {
       setBackgroundColor(null);
 
-      playerTitle.innerHTML = "Thanks!";
+      playerTitle.innerHTML = "<em>Thanks!</em>";
       playerTitle.style.opacity = 1;
 
       playerMessage.classList.remove('bottom');
-      playerMessage.innerHTML = "This is the End.";
+      playerMessage.innerHTML = "<em>This is the end.</em>";
     }
   }
 
@@ -197,10 +203,12 @@ function loadAudioBuffer(index) {
     .then(data => data.arrayBuffer())
     .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
     .then(decodedAudio => {
-      updateAudioBuffer(decodedAudio);
+      if (!recordingFrozen && !sessionEnded) {
+        updateAudioBuffer(decodedAudio);
 
-      if (granularSynth !== null && waveformRenderer !== null) {
-        setBackgroundColor(bufferCount);
+        if (granularSynth !== null && waveformRenderer !== null) {
+          setBackgroundColor(bufferCount);
+        }
       }
     });
 }
@@ -304,16 +312,16 @@ function setTouchPosition(x, y) {
   if (audioBuffer !== null) {
     const audioBufferDuration = audioBuffer.duration;
     const position = Math.max(minPosition, Math.min(maxPosition, x * audioBufferDuration));
-    const cutoff = Math.min(1, 1.5 - y);
+    // const cutoff = Math.min(1, 1.5 - y);
 
     if (waveformRenderer !== null) {
       waveformRenderer.setWindowPosition(position, y);
-      waveformRenderer.setWindowOpacity(cutoff);
+      // waveformRenderer.setWindowOpacity(cutoff);
     }
 
     if (granularSynth !== null) {
       granularSynth.setPosition(position);
-      granularSynth.setCutoff(cutoff);
+      // granularSynth.setCutoff(cutoff);
     }
   }
 }
@@ -323,6 +331,8 @@ function onPointerStart(e) {
   const y = e.changedTouches ? e.changedTouches[0].pageY : e.pageY;
   mouseIsDown = true;
   setTouchPosition(x / canvasWidth, y / canvasHeight); // normalize coordinates with canvas size
+
+  e.preventDefault();
 }
 
 function onPointerMove(e) {
@@ -331,10 +341,14 @@ function onPointerMove(e) {
     const y = e.changedTouches ? e.changedTouches[0].pageY : e.pageY;
     setTouchPosition(x / canvasWidth, y / canvasHeight); // normalize coordinates with canvas size
   }
+
+  e.preventDefault();
 }
 
 function onPointerEnd(e) {
   mouseIsDown = false;
+
+  e.preventDefault();
 }
 
 function dBToLin(val) {
