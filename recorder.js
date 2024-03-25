@@ -3,6 +3,8 @@ import config from './config.js'
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioContext = null;
 
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
 /****************************************************************
  * websocket communication
  */
