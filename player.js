@@ -241,7 +241,7 @@ const backgroundColors = [
 ];
 
 function setBackgroundColor(count) {
-  if (count !== null) {
+  if (false && count !== null) {
     const index = count % backgroundColors.length;
     document.body.style.backgroundColor = backgroundColors[index];
   } else {
