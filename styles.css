@@ -84,7 +84,8 @@ body {
   position: relative;
   width: fit-content;
   padding: 0.44em;
-  margin: 1em;  border-style: solid;
+  margin: 1em;
+  border-style: solid;
   border-width: 1px;
   border-radius: 0.1em;
   border-color: #fff;
@@ -179,4 +180,18 @@ body.controller {
 
 .controller-param[data-name="freeze"], .controller-param[data-name="end"] {
   display: inline;
+}
+
+#player-count {
+  display: inline-block;
+  width: 2em;
+  font-size: 1.1em;
+  text-align: right;
+}
+
+.controller-param[data-name="player-count"] {
+  display: inline;
+  pointer-events: none;
+  margin-left: 2em;
+  color: #fff;
 }

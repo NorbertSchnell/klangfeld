@@ -12,7 +12,6 @@ let sessionEnded = false;
 let touchX = 0.5;
 let touchY = 0.5;
 
-
 /*********************************************
  * websocket communication
  */
@@ -143,7 +142,7 @@ async function startPlaying() {
   }
 
   startAudio(audioContext);
-
+  
   if (granularSynth === null && waveformRenderer === null) {
     waveformRenderer = new WaveformRenderer();
     granularSynth = new GranularSynth();

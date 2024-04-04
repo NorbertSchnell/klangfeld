@@ -1,6 +1,8 @@
 import paramConfig from './params.js'
 import config from './config.js'
 
+const playerCountElem = document.getElementById('player-count');
+
 /*********************************************
  * websocket communication
  */
@@ -29,6 +31,10 @@ socket.addEventListener('message', (event) => {
 
     // dispatch incomming messages
     switch (selector) {
+      case 'player-count':
+        playerCountElem.innerHTML = value;
+        break;
+
       case 'freeze':
         setButton(selector, value, false);
         break;

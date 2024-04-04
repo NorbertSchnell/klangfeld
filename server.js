@@ -13,6 +13,7 @@ const sampleRate = appConfig['sample-rate'];
 const bufferSize = sampleRate;
 let recordingFrozen = false;
 let sessionEnded = false;
+let playerCount = 0;
 
 /****************************************************************
  * http server
@@ -42,6 +43,7 @@ webSocketServer.on('connection', (socket, req) => {
       controllerSockets.add(socket);
 
       sendCurrentParameterValues(socket);
+      sendMessage(socket, 'player-count', playerCount);
 
       socket.on('close', () => {
         controllerSockets.delete(socket);
@@ -109,6 +111,9 @@ webSocketServer.on('connection', (socket, req) => {
           switch (obj.selector) {
             case 'get-params': {
               sendCurrentParameterValues(socket);
+
+              playerCount++;
+              sendToAllControllers('player-count', playerCount);
               break;
             }
           }
@@ -117,6 +122,9 @@ webSocketServer.on('connection', (socket, req) => {
 
       socket.on('close', () => {
         removePlayerFromGroups(socket);
+
+        playerCount--;
+        sendToAllControllers('player-count', playerCount);
       });
 
       break;
@@ -230,7 +238,7 @@ function updateClientParameters(socket, selector, value) {
     } else if (selector === 'end') {
       sessionEnded = value;
     }
-    
+
     // reset stream when waking up from freeze or end
     if (frozenOrEnded && !(recordingFrozen || sessionEnded)) {
       resetStream();
