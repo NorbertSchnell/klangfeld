@@ -121,10 +121,10 @@ webSocketServer.on('connection', (socket, req) => {
       });
 
       socket.on('close', () => {
-        removePlayerFromGroups(socket);
-
-        playerCount--;
-        sendToAllControllers('player-count', playerCount);
+        if (removePlayerFromGroups(socket) !== null) {
+          playerCount--;
+          sendToAllControllers('player-count', playerCount);
+        }
       });
 
       break;
@@ -201,9 +201,11 @@ function addPlayerToSmallestGroup(socket) {
 function removePlayerFromGroups(socket) {
   for (let group of playerGroups) {
     if (group.delete(socket)) {
-      break;
+      return group;
     }
   }
+
+  return null;
 }
 
 function notifyPlayerGroup(index, count) {
