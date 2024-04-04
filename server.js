@@ -9,7 +9,7 @@ import paramConfig from './params.js';
 
 const recordFilePath = process.cwd() + '/audiofiles';
 const recordFileBaseName = 'segment';
-const sampleRate = 48000;
+const sampleRate = appConfig['sample-rate'];
 const bufferSize = sampleRate;
 let recordingFrozen = false;
 let sessionEnded = false;

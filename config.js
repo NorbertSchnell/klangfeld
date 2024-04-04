@@ -3,4 +3,5 @@ export default {
   'server-addr': '0.0.0.0',
   'server-port': 80,
   'midi-input-port': 'from Max 1',
+  'sample-rate': 48000,
 }

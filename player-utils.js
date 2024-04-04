@@ -1,10 +1,8 @@
 let audioContext = null;
 let scheduler = null;
 
-export function startAudio() {
-  if (audioContext === null) {
-    audioContext = new AudioContext();
-  }
+export function startAudio(ac) {
+  audioContext = ac
 
   if (scheduler === null) {
     scheduler = new SimpleScheduler();

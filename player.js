@@ -1,6 +1,7 @@
 import { startAudio, GranularSynth, WaveformRenderer } from "./player-utils.js";
 import config from './config.js'
 
+const audioContext = new AudioContext();
 const audiofilesBasePath = 'audiofiles/segment';
 let groupIndex = null;
 let bufferCount = 0;
@@ -42,7 +43,7 @@ socket.addEventListener('message', (event) => {
       case 'player-group': {
         groupIndex = value;
         playerMessage.innerText = 'Tap screen to start!';
-        window.addEventListener('touchstart', startPlaying);
+        window.addEventListener('touchend', startPlaying);
         break;
       }
 
@@ -134,10 +135,14 @@ let minPosition = 0;
 let maxPosition = 0;
 
 async function startPlaying() {
-  window.removeEventListener('touchstart', startPlaying);
+  window.removeEventListener('touchend', startPlaying);
   playerMessage.innerText = 'Waiting for live audio...';
 
-  startAudio();
+  if (audioContext.state !== 'running') {
+    await audioContext.resume();
+  }
+
+  startAudio(audioContext);
 
   if (granularSynth === null && waveformRenderer === null) {
     waveformRenderer = new WaveformRenderer();
@@ -196,8 +201,6 @@ function updateAudioBuffer(buffer) {
 }
 
 function loadAudioBuffer(index) {
-  const audioContext = new AudioContext();
-
   // load audio files into audio buffers
   fetch(`${audiofilesBasePath}-${index}.wav`)
     .then(data => data.arrayBuffer())

@@ -1,8 +1,6 @@
 import config from './config.js'
 
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioContext = null;
-
+let audioContext = new AudioContext();
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
 /****************************************************************
@@ -85,11 +83,11 @@ recordButton.addEventListener('click', () => {
   }
 });
 
-function startRecording() {
+async function startRecording() {
   recordButton.classList.add('active');
 
-  if (audioContext === null) {
-    audioContext = new AudioContext();
+  if (audioContext.state !== 'running') {
+    await audioContext.resume();
   }
 
   startAudioStream();
