@@ -583,7 +583,7 @@ export class WaveformRenderer {
 function drawWaveform(ctx, width, height, waveform) {
   const samplesPerPixel = waveform.length / width;
   const center = 0.5 * height;
-  const fullamp = 0.5 * height;
+  const fullamp = height;
   let fEnd = 0;
   let start = 0;
   let lastX = null;

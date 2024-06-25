@@ -103,12 +103,12 @@ function stopRecording() {
 }
 
 function startAudioStream() {
-  navigator.getUserMedia({
+  navigator.mediaDevices.getUserMedia({
     audio: {
       noiseSuppression: false,
       echoCancellation: false
     }
-  }, (audioStream) => {
+  }).then((audioStream) => {
     stream = audioStream;
 
     scriptProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1);
@@ -129,7 +129,7 @@ function startAudioStream() {
 
     audioIn = audioContext.createMediaStreamSource(stream);
     audioIn.connect(scriptProcessor);
-  }, (err) => console.error(err.stack));
+  }).catch((err) => console.error(err.stack));
 }
 
 function stopAudioStream() {
@@ -179,7 +179,7 @@ function renderWaveform() {
 function drawWaveform(ctx, width, height, waveform) {
   const samplesPerPixel = waveform.length / width;
   const center = 0.5 * height;
-  const fullamp = 0.5 * height;
+  const fullamp = height;
   let fEnd = 0;
   let start = 0;
   let lastX = null;

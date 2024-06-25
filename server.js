@@ -37,98 +37,83 @@ let controllerSockets = new Set();
 let recorderSocket = null;
 
 webSocketServer.on('connection', (socket, req) => {
-  switch (req.url) {
-    // controller clients
-    case '/controller': {
-      controllerSockets.add(socket);
+  // controller clients
+  if (req.url.endsWith('/controller')) {
+    controllerSockets.add(socket);
 
-      sendCurrentParameterValues(socket);
-      sendMessage(socket, 'player-count', playerCount);
+    sendCurrentParameterValues(socket);
+    sendMessage(socket, 'player-count', playerCount);
+
+    socket.on('close', () => {
+      controllerSockets.delete(socket);
+    });
+
+    socket.on('message', (message) => {
+      if (message.length > 0) {
+        const obj = JSON.parse(message);
+        updateClientParameters(socket, obj.selector, obj.value);
+      }
+    });
+  } else if (req.url.endsWith('/recorder')) {
+    // unique recorder client
+    if (recorderSocket !== null) {
+      sendMessage(socket, 'recorder-ok', false);
+    } else {
+      recorderSocket = socket;
+      sendMessage(socket, 'recorder-ok', true);
 
       socket.on('close', () => {
-        controllerSockets.delete(socket);
+        recorderSocket = null;
       });
-
-      socket.on('message', (message) => {
-        if (message.length > 0) {
-          const obj = JSON.parse(message);
-          updateClientParameters(socket, obj.selector, obj.value);
-        }
-      });
-
-      break;
-    }
-
-    // unique recorder client
-    case '/recorder': {
-      if (recorderSocket !== null) {
-        sendMessage(socket, 'recorder-ok', false);
-      } else {
-        recorderSocket = socket;
-        sendMessage(socket, 'recorder-ok', true);
-
-        socket.on('close', () => {
-          recorderSocket = null;
-        });
-
-        socket.on('message', (message) => {
-          if (message.length > 0) {
-            const obj = JSON.parse(message);
-
-            switch (obj.selector) {
-              case 'init-stream': {
-                resetStream();
-                break;
-              }
-            }
-          }
-        });
-      }
-
-      break;
-    }
-
-    // audio frames from recorder client
-    case '/audio': {
-      socket.on('message', (message) => {
-        if (message.length > 0 && !recordingFrozen && !sessionEnded) {
-          apaendAudioFrame(message);
-        }
-      });
-
-      break;
-    }
-
-    // player clients
-    default: {
-      const groupIndex = addPlayerToSmallestGroup(socket);
-      sendMessage(socket, 'player-group', groupIndex);
 
       socket.on('message', (message) => {
         if (message.length > 0) {
           const obj = JSON.parse(message);
 
           switch (obj.selector) {
-            case 'get-params': {
-              sendCurrentParameterValues(socket);
-
-              playerCount++;
-              sendToAllControllers('player-count', playerCount);
+            case 'init-stream': {
+              resetStream();
               break;
             }
           }
         }
       });
-
-      socket.on('close', () => {
-        if (removePlayerFromGroups(socket) !== null) {
-          playerCount--;
-          sendToAllControllers('player-count', playerCount);
-        }
-      });
-
-      break;
     }
+  } else if (req.url.endsWith('/audio')) {
+
+    // audio frames from recorder client
+    socket.on('message', (message) => {
+      if (message.length > 0 && !recordingFrozen && !sessionEnded) {
+        apaendAudioFrame(message);
+      }
+    });
+  } else {
+    // player clients
+    const groupIndex = addPlayerToSmallestGroup(socket);
+    sendMessage(socket, 'player-group', groupIndex);
+
+    playerCount++;
+
+    socket.on('message', (message) => {
+      if (message.length > 0) {
+        const obj = JSON.parse(message);
+
+        switch (obj.selector) {
+          case 'get-params': {
+            sendCurrentParameterValues(socket);
+            sendToAllControllers('player-count', playerCount);
+            break;
+          }
+        }
+      }
+    });
+
+    socket.on('close', () => {
+      if (removePlayerFromGroups(socket) !== null) {
+        playerCount--;
+        sendToAllControllers('player-count', playerCount);
+      }
+    });
   }
 
   socket.on('message', (message) => {

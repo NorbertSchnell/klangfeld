@@ -1,6 +1,8 @@
 import { startAudio, GranularSynth, WaveformRenderer } from "./player-utils.js";
 import config from './config.js'
 
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+
 const audioContext = new AudioContext();
 const audiofilesBasePath = 'audiofiles/segment';
 let groupIndex = null;
@@ -17,7 +19,8 @@ let touchY = 0.5;
  */
 const webSocketAddr = config['server-addr'];
 const webSocketPort = config['server-port'];
-const socket = new WebSocket(`ws://${webSocketAddr}:${webSocketPort}`);
+const webSocketUrl = `ws://${webSocketAddr}:${webSocketPort}`;
+const socket = new WebSocket(webSocketUrl);
 
 // listen to opening websocket connections
 socket.addEventListener('open', (event) => {
@@ -240,7 +243,7 @@ const backgroundColors = [
 ];
 
 function setBackgroundColor(count) {
-  if (false && count !== null) {
+  if (count !== null) {
     const index = count % backgroundColors.length;
     document.body.style.backgroundColor = backgroundColors[index];
   } else {

@@ -8,7 +8,8 @@ const playerCountElem = document.getElementById('player-count');
  */
 const webSocketAddr = config['server-addr'];
 const webSocketPort = config['server-port'];
-const socket = new WebSocket(`ws://${webSocketAddr}:${webSocketPort}/controller`);
+const webSocketUrl = `ws://${webSocketAddr}:${webSocketPort}/controller`;
+const socket = new WebSocket(webSocketUrl);
 
 // listen to opening websocket connections
 socket.addEventListener('open', (event) => {
